@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -77,7 +76,6 @@ void cadastrarCliente(void) {
     FILE *f = fopen("cliente.dat", "ab");
     if (f == NULL) { printf("Erro ao abrir cliente.dat\n"); return; }
 
-    getchar();
     printf("Nome: ");
     fgets(c.nome, sizeof(c.nome), stdin);
     c.nome[strcspn(c.nome, "\n")] = '\0';
@@ -86,6 +84,7 @@ void cadastrarCliente(void) {
     printf("CPF: ");
     fgets(c.cpf, sizeof(c.cpf), stdin);
     c.cpf[strcspn(c.cpf, "\n")] = '\0';
+    getchar(); //alteração nescessária pois tava pulando a entrada do email.
 
     printf("Email: ");
     fgets(c.email, sizeof(c.email), stdin);
@@ -148,7 +147,6 @@ void consultarClientePorCpf(void) {
         return;
     }
 
-    getchar();
     printf("Digite o CPF do cliente: ");
     fgets(cpfBusca, sizeof(cpfBusca), stdin);
     cpfBusca[strcspn(cpfBusca, "\n")] = '\0';
@@ -196,6 +194,7 @@ void alterarClientePorId(void) {
             fgets(c.cpf, sizeof(c.cpf), stdin);
             c.cpf[strcspn(c.cpf, "\n")] = '\0';
 
+            getchar(); //testando se resolve o problema do pulo de entrada do email
             printf("Email atual: %s\nNovo email: ", c.email);
             fgets(c.email, sizeof(c.email), stdin);
             c.email[strcspn(c.email, "\n")] = '\0';
@@ -238,7 +237,6 @@ void cadastrarVendedor(void) {
     FILE *f = fopen("vendedor.dat", "ab");
     if (f == NULL) { printf("Erro ao abrir vendedor.dat\n"); return; }
 
-    getchar();
     printf("Nome: ");
     fgets(v.nome, sizeof(v.nome), stdin);
     v.nome[strcspn(v.nome, "\n")] = '\0';
@@ -247,6 +245,7 @@ void cadastrarVendedor(void) {
     printf("CPF: ");
     fgets(v.cpf, sizeof(v.cpf), stdin);
     v.cpf[strcspn(v.cpf, "\n")] = '\0';
+    getchar(); //alteração nescessária pois tava pulando a entrada do email tambem.
 
     printf("Email: ");
     fgets(v.email, sizeof(v.email), stdin);
@@ -368,6 +367,7 @@ void alterarVendedorPorId(void) {
             fgets(v.cpf, sizeof(v.cpf), stdin);
             v.cpf[strcspn(v.cpf, "\n")] = '\0';
 
+            getchar(); //testando se resolve o problema do pulo de entrada do email novamente
             printf("Email atual: %s\nNovo email: ", v.email);
             fgets(v.email, sizeof(v.email), stdin);
             v.email[strcspn(v.email, "\n")] = '\0';
@@ -453,9 +453,6 @@ void cadastrarProduto(void) {
         printf("Erro ao abrir produto.dat\n");
         return;
     }
-
-    getchar(); // limpa \n pendente do scanf do menu
-
     printf("Nome do produto: ");
     fgets(p.nome, sizeof(p.nome), stdin);
     p.nome[strcspn(p.nome, "\n")] = '\0';
@@ -471,6 +468,7 @@ void cadastrarProduto(void) {
     fclose(f);
 
     printf("Produto cadastrado com ID %lu\n", p.id);
+    getchar();
 }
 
 void listarProdutos(void) {
@@ -851,7 +849,7 @@ void efetuarVenda(void) {
 }
 
 int main(void) {
-    int op, opC, opV, opP;
+    int op;
     do {
         printf("\n=== MENU PRINCIPAL ===\n");
         printf("0 - Sair\n");
@@ -868,58 +866,71 @@ int main(void) {
                 printf("Saindo...\n");
                 break;
 
-             case 1: 
-
-            do {
-                printf("\n--- CLIENTE ---\n");
-                printf("0 - Voltar\n");
-                printf("1 - Cadastrar\n");
-                printf("2 - Listar\n");
-                printf("3 - Consultar por ID\n");
-                printf("4 - Consultar por CPF\n");
-                printf("5 - Alterar por ID\n");
-                printf("Opcao: ");
-                scanf("%d", &opcC);
-                switch (opcC) {
-                    case 0: break;
-                    case 1: cadastrarCliente(); break;
-                    case 2: listarClientes(); break;
-                    case 3: consultarClientePorId(); break;
-                    case 4: consultarClientePorCpf(); break;
-                    case 5: alterarClientePorId(); break;
-                    default: printf("Opcao invalida!\n");
-                }
-            } while (opcC != 0);
-            break;
-
-            case 2: 
-    do {
-        printf("\n--- VENDEDOR ---\n");
-        printf("0 - Voltar\n");
-        printf("1 - Cadastrar\n");
-        printf("2 - Listar\n");
-        printf("3 - Consultar por ID\n");
-        printf("4 - Consultar por CPF\n");
-        printf("5 - Alterar por ID\n");
-        printf("Opcao: ");
-        scanf("%d", &opcV);
-        switch (opcV) {
-            case 0: break;
-            case 1: cadastrarVendedor(); break;
-            case 2: listarVendedores(); break;
-            case 3: consultarVendedorPorId(); break;
-            case 4: consultarVendedorPorCpf(); break;
-            case 5: alterarVendedorPorId(); break;
-            default: printf("Opcao invalida!\n");
-        }
-    } while (opcV != 0);
-    break;
-
-            case 3: 
+            case 1: {
+                int opcC;
                 do {
-                    printf("\n--- PRODUTO ---\n");
-                    printf("0 - Voltar\n1 - Cadastrar produto\n2 - Listar produtos\nOpcao: ");
+                    printf("\n%%%%%%%%%%%%%%%%%%%% CLIENTE %%%%%%%%%%%%%%%%\n");
+                    printf("0 - Voltar\n");
+                    printf("1 - Cadastrar\n");
+                    printf("2 - Listar\n");
+                    printf("3 - Consultar por ID\n");
+                    printf("4 - Consultar por CPF\n");
+                    printf("5 - Alterar por ID\n");
+                    printf("Opcao: ");
+                    scanf("%d", &opcC);
+                    getchar();
+
+                    switch (opcC) {
+                        case 0: break;
+                        case 1: cadastrarCliente(); break;
+                        case 2: listarClientes(); break;
+                        case 3: consultarClientePorId(); break;
+                        case 4: consultarClientePorCpf(); break;
+                        case 5: alterarClientePorId(); break;
+                        default: printf("Opcao invalida!\n");
+                    }
+                } while (opcC != 0);
+                break;
+            }
+
+            case 2: {
+                int opcV;
+                do {
+                    printf("\n&&&&&&&&&&&&&&&&&&&&&& VENDEDOR &&&&&&&&&&&&&&&&&&&&\n");
+                    printf("0 - Voltar\n");
+                    printf("1 - Cadastrar\n");
+                    printf("2 - Listar\n");
+                    printf("3 - Consultar por ID\n");
+                    printf("4 - Consultar por CPF\n");
+                    printf("5 - Alterar por ID\n");
+                    printf("Opcao: ");
+                    scanf("%d", &opcV);
+                    getchar();
+
+                    switch (opcV) {
+                        case 0: break;
+                        case 1: cadastrarVendedor(); break;
+                        case 2: listarVendedores(); break;
+                        case 3: consultarVendedorPorId(); break;
+                        case 4: consultarVendedorPorCpf(); break;
+                        case 5: alterarVendedorPorId(); break;
+                        default: printf("Opcao invalida!\n");
+                    }
+                } while (opcV != 0);
+                break;
+            }
+
+            case 3: {
+                int opcP;
+                do {
+                    printf("\n$$$$$$$$$$$$$$$$$$$$$$$$$ PRODUTO $$$$$$$$$$$$$$$$$$$$$$$$\n");
+                    printf("0 - Voltar\n");
+                    printf("1 - Cadastrar produto\n");
+                    printf("2 - Listar produtos\n");
+                    printf("Opcao: ");
                     scanf("%d", &opcP);
+                    getchar();
+
                     switch (opcP) {
                         case 0: break;
                         case 1: cadastrarProduto(); break;
@@ -933,16 +944,15 @@ int main(void) {
             case 4:
                 telaLoginVendedor();
                 break;
-            
+
             case 5:
                 efetuarVenda();
                 break;
 
             default:
                 printf("Opcao invalida!\n");
-                
+        }
     } while (op != 0);
 
     return 0;
 }
-
