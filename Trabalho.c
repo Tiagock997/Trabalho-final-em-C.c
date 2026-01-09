@@ -49,6 +49,28 @@ typedef struct {
     unsigned int quantidade;
 } ItemNotaFiscal;
 
+typedef struct {
+    unsigned long id;
+    char cnpj[15];
+    char nome[100];
+    char email[50];
+    char telefone[15];
+} Fornecedor;
+
+typedef struct {
+    unsigned long id;
+    unsigned long idFornecedor;
+    char dataCompra[11];
+    float valorTotal;
+} NotaCompra; //ainda não finalizada, terminarei no tempo livre
+
+typedef struct {
+    unsigned long id;
+    unsigned long idProduto;
+    unsigned long idNotaCompra;
+    unsigned int quantidade;
+    float valorUnitario;
+} ItemNotaCompra; //Terminarei este daqui a pouco.
 
 //QUestões sobre o cliente
 
@@ -73,8 +95,9 @@ unsigned long proximoIdCliente(void) {
 
 void cadastrarCliente(void) {
     Cliente c;
-    FILE *f = fopen("cliente.dat", "ab");
-    if (f == NULL) { printf("Erro ao abrir cliente.dat\n"); return; }
+    FILE *f = fopen("cliente.dat", "ab"); //abrir em modo ab
+    if (f == NULL) { printf("Erro ao abrir cliente.dat\n"); //Se o arquivo não existe (f == NULL)
+    return; }
 
     printf("Nome: ");
     fgets(c.nome, sizeof(c.nome), stdin);
@@ -95,7 +118,7 @@ void cadastrarCliente(void) {
     c.telefone[strcspn(c.telefone, "\n")] = '\0';
 
     c.id = proximoIdCliente();
-    fwrite(&c, sizeof(Cliente), 1, f);
+    fwrite(&c, sizeof(Cliente), 1, f); //gravar tudo no arquivo
     fclose(f);
     printf("Cliente cadastrado com ID %lu\n", c.id);
 }
@@ -109,7 +132,7 @@ void listarClientes(void) {
         tem = 1;
         printf("ID: %lu\nNome: %s\nCPF: %s\nEmail: %s\nTelefone: %s\n\n",
                c.id, c.nome, c.cpf, c.email, c.telefone);
-    }
+    }   //fazer um loop básico com o fread
     if (!tem) printf("Nenhum cliente cadastrado.\n");
     fclose(f);
 }
@@ -119,13 +142,15 @@ void consultarClientePorId(void) {
     FILE *f = fopen("cliente.dat", "rb");
     Cliente c;
     int encontrado = 0;
-    if (f == NULL) { printf("Nenhum cliente cadastrado.\n"); return; }
+    if (f == NULL) { printf("Nenhum cliente cadastrado.\n"); 
+        return; 
+    }
 
     printf("Digite o ID do cliente: ");
     scanf("%lu", &idBusca);
 
     while (fread(&c, sizeof(Cliente), 1, f) == 1) {
-        if (c.id == idBusca) {
+        if (c.id == idBusca) { // c.id == idBusca imprime e fé.
             printf("ID: %lu\nNome: %s\nCPF: %s\nEmail: %s\nTelefone: %s\n",
                    c.id, c.nome, c.cpf, c.email, c.telefone);
             encontrado = 1;
@@ -152,7 +177,7 @@ void consultarClientePorCpf(void) {
     cpfBusca[strcspn(cpfBusca, "\n")] = '\0';
 
     while (fread(&c, sizeof(Cliente), 1, f) == 1) {
-        if (strcmp(c.cpf, cpfBusca) == 0) {
+        if (strcmp(c.cpf, cpfBusca) == 0) { //compara strcmp(c.cpf, cpfBusca), se der certo imprime e fé dnv
             printf("ID: %lu\nNome: %s\nCPF: %s\nEmail: %s\nTelefone: %s\n",
                    c.id, c.nome, c.cpf, c.email, c.telefone);
             encontrado = 1;
@@ -168,7 +193,7 @@ void consultarClientePorCpf(void) {
 
 void alterarClientePorId(void) {
     unsigned long idBusca;
-    FILE *f = fopen("cliente.dat", "r+b");
+    FILE *f = fopen("cliente.dat", "r+b"); //leitura e escrita
     Cliente c;
     int encontrado = 0;
 
@@ -203,7 +228,7 @@ void alterarClientePorId(void) {
             fgets(c.telefone, sizeof(c.telefone), stdin);
             c.telefone[strcspn(c.telefone, "\n")] = '\0';
 
-            fseek(f, -(long)sizeof(Cliente), SEEK_CUR);
+            fseek(f, -(long)sizeof(Cliente), SEEK_CUR); //Volta o ponteiro do arquivo
             fwrite(&c, sizeof(Cliente), 1, f);
             printf("Cliente atualizado com sucesso.\n");
             break;
@@ -217,8 +242,190 @@ void alterarClientePorId(void) {
     fclose(f);
 }
 
+//Questões sobre o fornecedor. (sem coments)
 
-//Questões sobre o vendedor
+unsigned long proximoIdFornecedor(void) {
+    FILE *f = fopen("fornecedor.dat", "rb");
+    Fornecedor fnd;
+    unsigned long maxId = 0;
+    if (f == NULL) return 1;
+    while (fread(&fnd, sizeof(Fornecedor), 1, f) == 1) {
+        if (fnd.id > maxId) maxId = fnd.id;
+    }
+    fclose(f);
+    return maxId + 1;
+}
+
+void cadastrarFornecedor(void) {
+    Fornecedor fnd;
+    FILE *f = fopen("fornecedor.dat", "ab");
+    if (f == NULL) {
+        printf("Erro ao abrir fornecedor.dat\n");
+        return;
+    }
+
+    printf("Nome: ");
+    fgets(fnd.nome, sizeof(fnd.nome), stdin);
+    fnd.nome[strcspn(fnd.nome, "\n")] = '\0';
+    converterMaiuscula(fnd.nome);
+
+    printf("CNPJ: ");
+    fgets(fnd.cnpj, sizeof(fnd.cnpj), stdin);
+    fnd.cnpj[strcspn(fnd.cnpj, "\n")] = '\0';
+
+    printf("Email: ");
+    fgets(fnd.email, sizeof(fnd.email), stdin);
+    fnd.email[strcspn(fnd.email, "\n")] = '\0';
+
+    printf("Telefone: ");
+    fgets(fnd.telefone, sizeof(fnd.telefone), stdin);
+    fnd.telefone[strcspn(fnd.telefone, "\n")] = '\0';
+
+    fnd.id = proximoIdFornecedor();
+    fwrite(&fnd, sizeof(Fornecedor), 1, f);
+    fclose(f);
+
+    printf("Fornecedor cadastrado com ID %lu\n", fnd.id);
+}
+
+void listarFornecedores(void) {
+    FILE *f = fopen("fornecedor.dat", "rb");
+    Fornecedor fnd;
+    int tem = 0;
+
+    if (f == NULL) {
+        printf("Nenhum fornecedor cadastrado.\n");
+        return;
+    }
+
+    while (fread(&fnd, sizeof(Fornecedor), 1, f) == 1) {
+        tem = 1;
+        printf("ID: %lu\n", fnd.id);
+        printf("Nome: %s\n", fnd.nome);
+        printf("CNPJ: %s\n", fnd.cnpj);
+        printf("Email: %s\n", fnd.email);
+        printf("Telefone: %s\n\n", fnd.telefone);
+    }
+
+    if (!tem) {
+        printf("Nenhum fornecedor cadastrado.\n");
+    }
+
+    fclose(f);
+}
+
+void consultarFornecedorPorId(void) {
+    unsigned long idBusca;
+    FILE *f = fopen("fornecedor.dat", "rb");
+    Fornecedor fnd;
+    int encontrado = 0;
+
+    if (f == NULL) {
+        printf("Nenhum fornecedor cadastrado.\n");
+        return;
+    }
+
+    printf("Digite o ID do fornecedor: ");
+    scanf("%lu", &idBusca);
+    getchar();
+
+    while (fread(&fnd, sizeof(Fornecedor), 1, f) == 1) {
+        if (fnd.id == idBusca) {
+            printf("ID: %lu\nNome: %s\nCNPJ: %s\nEmail: %s\nTelefone: %s\n",
+                   fnd.id, fnd.nome, fnd.cnpj, fnd.email, fnd.telefone);
+            encontrado = 1;
+            break;
+        }
+    }
+    fclose(f);
+
+    if (!encontrado) {
+        printf("Fornecedor com ID %lu nao encontrado.\n", idBusca);
+    }
+}
+
+void consultarFornecedorPorCnpj(void) {
+    char cnpjBusca[15];
+    FILE *f = fopen("fornecedor.dat", "rb");
+    Fornecedor fnd;
+    int encontrado = 0;
+
+    if (f == NULL) {
+        printf("Nenhum fornecedor cadastrado.\n");
+        return;
+    }
+
+    printf("Digite o CNPJ do fornecedor: ");
+    fgets(cnpjBusca, sizeof(cnpjBusca), stdin);
+    cnpjBusca[strcspn(cnpjBusca, "\n")] = '\0';
+
+    while (fread(&fnd, sizeof(Fornecedor), 1, f) == 1) {
+        if (strcmp(fnd.cnpj, cnpjBusca) == 0) {
+            printf("ID: %lu\nNome: %s\nCNPJ: %s\nEmail: %s\nTelefone: %s\n",
+                   fnd.id, fnd.nome, fnd.cnpj, fnd.email, fnd.telefone);
+            encontrado = 1;
+            break;
+        }
+    }
+    fclose(f);
+
+    if (!encontrado) {
+        printf("Fornecedor com CNPJ %s nao encontrado.\n", cnpjBusca);
+    }
+}
+
+void alterarFornecedorPorId(void) {
+    unsigned long idBusca;
+    FILE *f = fopen("fornecedor.dat", "r+b");
+    Fornecedor fnd;
+    int encontrado = 0;
+
+    if (f == NULL) {
+        printf("Nenhum fornecedor cadastrado.\n");
+        return;
+    }
+
+    printf("Digite o ID do fornecedor a alterar: ");
+    scanf("%lu", &idBusca);
+    getchar();
+
+    while (fread(&fnd, sizeof(Fornecedor), 1, f) == 1) {
+        if (fnd.id == idBusca) {
+            encontrado = 1;
+
+            printf("Nome atual: %s\nNovo nome: ", fnd.nome);
+            fgets(fnd.nome, sizeof(fnd.nome), stdin);
+            fnd.nome[strcspn(fnd.nome, "\n")] = '\0';
+            converterMaiuscula(fnd.nome);
+
+            printf("CNPJ atual: %s\nNovo CNPJ: ", fnd.cnpj);
+            fgets(fnd.cnpj, sizeof(fnd.cnpj), stdin);
+            fnd.cnpj[strcspn(fnd.cnpj, "\n")] = '\0';
+
+            printf("Email atual: %s\nNovo email: ", fnd.email);
+            fgets(fnd.email, sizeof(fnd.email), stdin);
+            fnd.email[strcspn(fnd.email, "\n")] = '\0';
+
+            printf("Telefone atual: %s\nNovo telefone: ", fnd.telefone);
+            fgets(fnd.telefone, sizeof(fnd.telefone), stdin);
+            fnd.telefone[strcspn(fnd.telefone, "\n")] = '\0';
+
+            fseek(f, -(long)sizeof(Fornecedor), SEEK_CUR);
+            fwrite(&fnd, sizeof(Fornecedor), 1, f);
+            printf("Fornecedor atualizado com sucesso.\n");
+            break;
+        }
+    }
+
+    if (!encontrado) {
+        printf("Fornecedor com ID %lu nao encontrado.\n", idBusca);
+    }
+
+    fclose(f);
+}
+
+
+//Questões sobre o vendedor. (segue a mesma logica de cliente)
 
 unsigned long proximoIdVendedor(void) {
     FILE *f = fopen("vendedor.dat", "rb");
@@ -255,7 +462,7 @@ void cadastrarVendedor(void) {
     fgets(v.telefone, sizeof(v.telefone), stdin);
     v.telefone[strcspn(v.telefone, "\n")] = '\0';
 
-    printf("Senha: ");
+    printf("Senha será: ");
     fgets(v.password, sizeof(v.password), stdin);
     v.password[strcspn(v.password, "\n")] = '\0';
 
@@ -435,7 +642,7 @@ void telaLoginVendedor(void) {
 unsigned long proximoIdProduto(void) {
     FILE *f = fopen("produto.dat", "rb");
     Produto p;
-    unsigned long maxId = 0;
+    unsigned long maxId = 0;//regra 
 
     if (f == NULL) return 1;
 
@@ -507,7 +714,7 @@ int buscarProdutoPorId(unsigned long id, Produto *out) {
 
     while (fread(&p, sizeof(Produto), 1, f) == 1) {
         if (p.id == id) {
-            if (out) *out = p;
+            if (out) *out = p;//copia a struct para *out
             fclose(f);
             return 1;
         }
@@ -528,15 +735,15 @@ int atualizarEstoqueProduto(unsigned long id, int delta) {
 
     while (fread(&p, sizeof(Produto), 1, f) == 1) {
         if (p.id == id) {
-            if ((int)p.quantidadeEstoque + delta < 0) {
+            if ((int)p.quantidadeEstoque + delta < 0) {//não deixa ficar negativo
                 printf("Estoque insuficiente para o produto ID %lu.\n", id);
                 fclose(f);
                 return 0;
             }
 
-            p.quantidadeEstoque = (unsigned int)((int)p.quantidadeEstoque + delta);
+            p.quantidadeEstoque = (unsigned int)((int)p.quantidadeEstoque + delta);//atualiza(+-)
 
-            fseek(f, -(long)sizeof(Produto), SEEK_CUR);
+            fseek(f, -(long)sizeof(Produto), SEEK_CUR);//volta um resgistro e salva
             fwrite(&p, sizeof(Produto), 1, f);
 
             fclose(f);
@@ -548,6 +755,8 @@ int atualizarEstoqueProduto(unsigned long id, int delta) {
     printf("Produto ID %lu nao encontrado para atualizar estoque.\n", id);
     return 0;
 }
+
+//Sobre nota fiscal (comentários com mesma lógica anterior)
 
 unsigned long proximoIdNotaFiscal(void) {
     FILE *f = fopen("notaFiscal.dat", "rb");
@@ -577,6 +786,7 @@ unsigned long proximoIdItemNotaFiscal(void) {
     return maxId + 1;
 }
 
+//SOBre o carrinho
 
 ItemCarrinhoVenda *adicionarItemCarrinho(ItemCarrinhoVenda *carrinho,
                                          int *qtd,
@@ -606,7 +816,6 @@ ItemCarrinhoVenda *adicionarItemCarrinho(ItemCarrinhoVenda *carrinho,
 
     return carrinho;
 }
-
 
 void imprimirCarrinho(ItemCarrinhoVenda *carrinho, int qtd) {
     if (qtd == 0) {
@@ -851,13 +1060,13 @@ void efetuarVenda(void) {
 int main(void) {
     int op;
     do {
-        printf("\n=== MENU PRINCIPAL ===\n");
         printf("0 - Sair\n");
         printf("1 - Menu Cliente\n");
         printf("2 - Menu Vendedor\n");
-        printf("3 - Menu Produto\n");
-        printf("4 - Login Vendedor (teste)\n");
-        printf("5 - Efetuar venda\n");
+        printf("3 - Menu Fornecedor\n");
+        printf("4 - Menu Produto\n");
+        printf("5 - Login Vendedor (teste)\n");
+        printf("6 - Efetuar venda\n");
         printf("Opcao: ");
         scanf("%d", &op);
 
@@ -921,6 +1130,34 @@ int main(void) {
             }
 
             case 3: {
+                int opcF;
+                do {
+                    printf("\n########## FORNECEDOR ##########\n");
+                    printf("0 - Voltar\n");
+                    printf("1 - Cadastrar\n");
+                    printf("2 - Listar\n");
+                    printf("3 - Consultar por ID\n");
+                    printf("4 - Consultar por CNPJ\n");
+                    printf("5 - Alterar por ID\n");
+                    printf("Opcao: ");
+                    scanf("%d", &opcF);
+                    getchar();
+
+                    switch (opcF) {
+                        case 0: break;
+                        case 1: cadastrarFornecedor(); break;
+                        case 2: listarFornecedores(); break;
+                        case 3: consultarFornecedorPorId(); break;
+                        case 4: consultarFornecedorPorCnpj(); break;
+                        case 5: alterarFornecedorPorId(); break;
+                        default: printf("Opcao invalida!\n");
+                    }
+                } while (opcF != 0);
+                break;
+            }
+
+
+            case 4: {
                 int opcP;
                 do {
                     printf("\n$$$$$$$$$$$$$$$$$$$$$$$$$ PRODUTO $$$$$$$$$$$$$$$$$$$$$$$$\n");
@@ -933,19 +1170,21 @@ int main(void) {
 
                     switch (opcP) {
                         case 0: break;
-                        case 1: cadastrarProduto(); break;
-                        case 2: listarProdutos(); break;
+                        case 1: cadastrarProduto(); 
+                        break;
+                        case 2: listarProdutos(); 
+                        break;
                         default: printf("Opcao invalida!\n");
                     }
                 } while (opcP != 0);
                 break;
             }
 
-            case 4:
+            case 5:
                 telaLoginVendedor();
                 break;
 
-            case 5:
+            case 6:
                 efetuarVenda();
                 break;
 
